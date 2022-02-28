@@ -31,18 +31,21 @@ def deploy_workflow_module(client: ZeebeClient, bpmn_file: UploadFile) -> str:
         logger.error("Could not open or write to the .bpmn file!")
 
     try:
-        client.deploy_workflow(bpmn_file_path)
+        # client.deploy_workflow(bpmn_file_path)
+        client.deploy_process(bpmn_file_path)
         success_msg = ".bpmn deployment was successful!"
         logger.info(success_msg)
         return success_msg
     except Exception as e:
-        error_response_dict = {
-            "code": str(e.__context__.code()),
-            "details": e.__context__.details(),
-            "debug_string": json.loads(e.__context__.debug_error_string()),
-        }
-        logger.error(error_response_dict)
-        return error_response_dict
+        # error_response_dict = {
+        #     "code": str(e.__context__.code()),
+        #     "details": e.__context__.details(),
+        #     "debug_string": json.loads(e.__context__.debug_error_string()),
+        # }
+        # logger.error(error_response_dict)
+        # return error_response_dict
+        raise e
+        return {"error": "error"}
 
 
 def run_instance_module(client: ZeebeClient, bpmn_process_id: str, variables: Dict) -> str:

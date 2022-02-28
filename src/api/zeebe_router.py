@@ -7,21 +7,24 @@ from pyzeebe import ZeebeClient
 from ..zeebe.modules import deploy_workflow_module, publish_message_module, run_instance_module
 from ..zeebe.settings import Zeebe
 from ..zeebe.tasks import worker
+import grpc.aio
+import grpc
 
 logger = logging.getLogger()
 
 router = APIRouter()
 
-
 logger.info("Starting client")
 client = ZeebeClient(
-    hostname=Zeebe.ZEEBE_HOSTNAME,
-    port=Zeebe.ZEEBE_PORT,
+    grpc.insecure_channel('{}:{}'.format(
+        Zeebe.ZEEBE_HOSTNAME,
+        Zeebe.ZEEBE_PORT,
+    )),
     max_connection_retries=Zeebe.ZEEBE_MAX_CONNECTION_RETRIES,
 )
 
 logger.info("Starting worker")
-worker.work(True)
+worker.work()
 
 
 @router.post("/deploy", description="Deploy .bpmn workflow")
@@ -33,18 +36,21 @@ async def deploy_workflow(bpmn_file: UploadFile = File(...)):
     return deploy_workflow_module(client, bpmn_file)
 
 
+d = {
+    "collectedItems": 0,
+    "numberOfItems": 3,
+    "data": {"payload": "123", "orderId": "1"},
+    "aggregateList": [],
+    "messageTimeout": "PT10S",
+    "failureHandlerTest": False,
+    "errorHandlerTest": False,
+}
+
+
 @router.post("/run", description="Run an instance of workflow")
 async def run_instance(
-    bpmn_process_id: str,
-    variables: Dict = {
-        "collectedItems": 0,
-        "numberOfItems": 3,
-        "data": {"payload": "123", "orderId": "1"},
-        "aggregateList": [],
-        "messageTimeout": "PT10S",
-        "failureHandlerTest": False,
-        "errorHandlerTest": False,
-    },
+        bpmn_process_id: str,
+        variables=d,
 ):
     """Endpoint for running new instances.
 

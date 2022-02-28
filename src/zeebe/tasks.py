@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 
+import grpc
 from pyzeebe import ZeebeWorker
 
 from .settings import Zeebe
@@ -8,7 +9,11 @@ from .settings import Zeebe
 logger = logging.getLogger()
 
 worker = ZeebeWorker(
-    hostname=Zeebe.ZEEBE_HOSTNAME, port=Zeebe.ZEEBE_PORT, max_connection_retries=Zeebe.ZEEBE_MAX_CONNECTION_RETRIES,
+    grpc.insecure_channel('{}:{}'.format(
+        Zeebe.ZEEBE_HOSTNAME,
+        Zeebe.ZEEBE_PORT,
+    )),
+    max_connection_retries=Zeebe.ZEEBE_MAX_CONNECTION_RETRIES,
 )
 
 
